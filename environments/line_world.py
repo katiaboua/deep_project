@@ -48,6 +48,22 @@ class LineWorldEnv(ModelFreeEnv):
     - Actions : 0 = Gauche, 1 = Droite
     """
 
+    # -----------------------------------------------
+    # MDP complet (pour Dynamic Programming)
+    # -----------------------------------------------
+    S = np.array([0, 1, 2, 3, 4])
+    A = np.array([0, 1])
+    R = np.array([0.0, -1.0, 1.0])
+    T = np.array([0, 4])
+
+    p = np.zeros((5, 2, 5, 3))
+    p[1, 0, 0, 1] = 1.0   # état 1, Gauche → état 0, reward -1.0
+    p[3, 1, 4, 2] = 1.0   # état 3, Droite → état 4, reward +1.0
+    p[1, 1, 2, 0] = 1.0   # état 1, Droite → état 2, reward 0.0
+    p[3, 0, 2, 0] = 1.0   # état 3, Gauche → état 2, reward 0.0
+    p[2, 0, 1, 0] = 1.0   # état 2, Gauche → état 1, reward 0.0
+    p[2, 1, 3, 0] = 1.0   # état 2, Droite → état 3, reward 0.0
+
     def __init__(self, num_cells: int = 5):
         self.num_cells = num_cells
         self.agent_pos = self.num_cells // 2  # départ au milieu
