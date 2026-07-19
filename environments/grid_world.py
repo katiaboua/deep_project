@@ -40,11 +40,11 @@ class GridWorldEnv(ModelFreeEnv):
     Environnement Grid World 5x5.
 
     Représentation :
-        [A][ ][ ][ ][X]   ← état 4  = TRAP  (reward = -3.0, terminal)
+        [A][ ][ ][ ][X]   <- état 4  = TRAP  (reward = -3.0, terminal)
         [ ][ ][ ][ ][ ]
         [ ][ ][ ][ ][ ]
         [ ][ ][ ][ ][ ]
-        [ ][ ][ ][ ][G]   ← état 24 = GOAL  (reward = +1.0, terminal)
+        [ ][ ][ ][ ][G]   <- état 24 = GOAL  (reward = +1.0, terminal)
 
     Actions : 0=Haut, 1=Bas, 2=Gauche, 3=Droite
     Agent démarre en haut à gauche (état 0).
@@ -53,94 +53,68 @@ class GridWorldEnv(ModelFreeEnv):
     def __init__(self, rows: int = 5, cols: int = 5):
         self.rows = rows
         self.cols = cols
-        self.trap = cols - 1               # état 4  → coin haut-droit
-        self.goal = rows * cols - 1        # état 24 → coin bas-droit
+        self.trap = cols - 1
+        self.goal = rows * cols - 1
         self.terminal_states = [self.trap, self.goal]
         self.agent_pos = 0
-        self._score = 0.0                  # score cumulé
-
-    # ------------------------------------------------------------------
-    # Helpers internes
-    # ------------------------------------------------------------------
+        self._score = 0.0
 
     def _state_to_rc(self, state: int):
-        """Convertit un état (int) en (ligne, colonne)."""
         return state // self.cols, state % self.cols
 
     def _rc_to_state(self, row: int, col: int) -> int:
-        """Convertit (ligne, colonne) en état (int)."""
         return row * self.cols + col
 
     def _next_position(self, state: int, action: int) -> int:
-        """Calcule la prochaine position sans modifier l'état."""
         row, col = self._state_to_rc(state)
-        if action == 0:    # Haut
+        if action == 0:
             row = max(row - 1, 0)
-        elif action == 1:  # Bas
+        elif action == 1:
             row = min(row + 1, self.rows - 1)
-        elif action == 2:  # Gauche
+        elif action == 2:
             col = max(col - 1, 0)
-        elif action == 3:  # Droite
+        elif action == 3:
             col = min(col + 1, self.cols - 1)
         return self._rc_to_state(row, col)
 
     def _compute_reward(self, state: int) -> float:
-        """Calcule le reward pour un état donné."""
         if state == self.goal:
             return 1.0
         elif state == self.trap:
             return -3.0
         return 0.0
 
-    # ------------------------------------------------------------------
-    # Contrat ModelFreeEnv
-    # ------------------------------------------------------------------
-
     def reset(self):
-        """Réinitialise l'environnement."""
         self.agent_pos = 0
         self._score = 0.0
 
     def step(self, action: int):
-        """
-        Joue une action. Ne retourne rien.
-        Utilise current_state(), score(), is_game_over() pour les infos.
-        """
         if action not in self.available_actions():
             raise Exception(f"Action invalide : {action}")
         if self.is_game_over():
             raise Exception("Le jeu est terminé, appelle reset() d'abord !")
-
         self.agent_pos = self._next_position(self.agent_pos, action)
         self._score += self._compute_reward(self.agent_pos)
 
     def is_game_over(self) -> bool:
-        """Retourne True si l'agent est sur un état terminal."""
         return self.agent_pos in self.terminal_states
 
     def current_state(self) -> int:
-        """Retourne la position actuelle de l'agent."""
         return self.agent_pos
 
     def available_actions(self) -> List[int]:
-        """Retourne les actions disponibles : 0=Haut, 1=Bas, 2=Gauche, 3=Droite."""
         return [0, 1, 2, 3]
 
     def score(self) -> float:
-        """Retourne le score cumulé."""
         return self._score
 
     def max_state_count(self) -> int:
-        """Nombre total d'états possibles."""
         return self.rows * self.cols
 
     def max_actions_count(self) -> int:
-        """Nombre total d'actions possibles."""
         return 4
 
     def pretty_print(self):
-        """Affiche la grille dans le terminal."""
-        ACTION_NAMES = ["↑", "↓", "←", "→"]
         print()
         for row in range(self.rows):
             line = ""
@@ -158,86 +132,103 @@ class GridWorldEnv(ModelFreeEnv):
         print(f"  Score : {self._score:+.1f}")
         if self.is_game_over():
             if self.agent_pos == self.goal:
-                print("  ✅ Gagné ! Reward = +1.0")
+                print("  Gagne ! Reward = +1.0")
             else:
-                print("  ❌ Perdu ! Reward = -3.0")
-
-    # ------------------------------------------------------------------
-    # Mode humain
-    # ------------------------------------------------------------------
+                print("  Perdu ! Reward = -3.0")
 
     def play_human(self):
-        """Mode interactif : l'utilisateur joue manuellement."""
-        print("\n🎮 MODE HUMAIN — Grid World")
+        print("\nMODE HUMAIN - Grid World")
         print("Commandes : [0]=Haut  [1]=Bas  [2]=Gauche  [3]=Droite  [q]=Quitter\n")
-
         self.reset()
         self.pretty_print()
-
         ACTION_NAMES = {0: "Haut", 1: "Bas", 2: "Gauche", 3: "Droite"}
-
         while not self.is_game_over():
             commande = input("  Ton action : ").strip().lower()
-
             if commande == "q":
-                print("  Partie abandonnée.")
+                print("  Partie abandonnee.")
                 break
             elif commande in ["0", "1", "2", "3"]:
                 action = int(commande)
                 prev_score = self.score()
                 self.step(action)
                 reward = self.score() - prev_score
-                print(f"  → {ACTION_NAMES[action]} | reward={reward:+.1f}")
+                print(f"  -> {ACTION_NAMES[action]} | reward={reward:+.1f}")
                 self.pretty_print()
             else:
-                print("  ⚠️  Commande invalide. Utilise 0/1/2/3.")
-
-    # ------------------------------------------------------------------
-    # Mode pas-à-pas
-    # ------------------------------------------------------------------
+                print("  Commande invalide. Utilise 0/1/2/3.")
 
     def play_policy_step_by_step(self, pi: np.ndarray, delay: float = 0.5):
-        """
-        Rejoue la policy apprise pas à pas, sans relancer l'apprentissage.
-
-        Args:
-            pi : matrice (25, 4) — policy apprise
-            delay : pause entre chaque étape en mode auto (secondes)
-        """
         ACTION_NAMES = {0: "Haut", 1: "Bas", 2: "Gauche", 3: "Droite"}
-
-        print("\n🤖 MODE PAS-À-PAS — Replay de la policy")
-        print("Appuie sur [Entrée] pour avancer, 'auto' pour automatique.\n")
-
+        print("\nMODE PAS-A-PAS - Replay de la policy")
+        print("Appuie sur [Entree] pour avancer, 'auto' pour automatique.\n")
         self.reset()
         self.pretty_print()
-
         step = 0
         mode_auto = False
-
         while not self.is_game_over():
             action = np.argmax(pi[self.current_state()])
             action_name = ACTION_NAMES[action]
-
             if not mode_auto:
-                cmd = input(f"  Étape {step+1} — Action : {action_name} | [Entrée] / 'auto' : ").strip().lower()
+                cmd = input(f"  Etape {step+1} - Action : {action_name} | [Entree] / 'auto' : ").strip().lower()
                 if cmd == "auto":
                     mode_auto = True
             else:
-                print(f"  Étape {step+1} — Action : {action_name}")
+                print(f"  Etape {step+1} - Action : {action_name}")
                 time.sleep(delay)
-
             prev_score = self.score()
             self.step(action)
             reward = self.score() - prev_score
             step += 1
             self.pretty_print()
-
             if step > 100:
-                print("  ⚠️  Trop d'étapes — la policy boucle peut-être.")
+                print("  Trop d'etapes - la policy boucle peut-etre.")
                 break
+        print(f"\n  Termine en {step} etape(s). Score final : {self.score():+.1f}")
 
-        print(f"\n  Terminé en {step} étape(s). Score final : {self.score():+.1f}")
+
+# ----------------------------------------------------------------------
+# Construction du MDP (en dehors de la classe)
+# ----------------------------------------------------------------------
+
+def _build_gridworld_mdp():
+    rows, cols = 5, 5
+    trap, goal = 4, 24
+
+    S = np.array(range(25))
+    A = np.array([0, 1, 2, 3])
+    R = np.array([0.0, -3.0, 1.0])
+    T = np.array([trap, goal])
+
+    def state_to_rc(s): return s // cols, s % cols
+    def rc_to_state(r, c): return r * cols + c
+
+    def next_state(s, a):
+        r, c = state_to_rc(s)
+        if a == 0: r = max(r-1, 0)
+        elif a == 1: r = min(r+1, rows-1)
+        elif a == 2: c = max(c-1, 0)
+        elif a == 3: c = min(c+1, cols-1)
+        return rc_to_state(r, c)
+
+    def reward_index(s_next):
+        if s_next == goal: return 2
+        elif s_next == trap: return 1
+        else: return 0
+
+    p = np.zeros((25, 4, 25, 3))
+    for s in range(25):
+        if s in [trap, goal]:
+            continue
+        for a in range(4):
+            s_next = next_state(s, a)
+            r_idx = reward_index(s_next)
+            p[s, a, s_next, r_idx] = 1.0
+
+    return S, A, R, T, p
+
+
+# Ajout du MDP a la classe
+GridWorldEnv.S, GridWorldEnv.A, GridWorldEnv.R, GridWorldEnv.T, GridWorldEnv.p = _build_gridworld_mdp()
 
 
 # ----------------------------------------------------------------------
@@ -246,18 +237,14 @@ class GridWorldEnv(ModelFreeEnv):
 if __name__ == "__main__":
     env = GridWorldEnv()
 
-    print("=== TEST EPISODE ALEATOIRE ===")
+    print("=== TEST ===")
     env.reset()
     env.pretty_print()
 
-    ACTION_NAMES = {0: "Haut", 1: "Bas", 2: "Gauche", 3: "Droite"}
-    steps = 0
-
-    while not env.is_game_over() and steps < 50:
-        action = np.random.choice(env.available_actions())
-        prev_score = env.score()
-        env.step(action)
-        reward = env.score() - prev_score
-        print(f"  → {ACTION_NAMES[action]} | reward={reward:+.1f}")
-        env.pretty_print()
-        steps += 1
+    from algorithms.dynamic_programming import policy_iteration
+    pi, V = policy_iteration(
+        GridWorldEnv.S, GridWorldEnv.A, GridWorldEnv.R,
+        GridWorldEnv.p, GridWorldEnv.T,
+        gamma=0.99, theta=0.001
+    )
+    print("V:", V.reshape(5, 5).round(3))
