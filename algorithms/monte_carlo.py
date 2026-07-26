@@ -48,7 +48,12 @@ def monte_carlo_es(env, gamma: float = 0.999, num_episodes: int = 10000, max_ste
             episode.append((state, action, reward))
 
             if not env.is_game_over():
-                action = np.argmax(pi[env.current_state()])
+                # argmax restreint aux actions disponibles (necessaire pour
+                # les envs ou toutes les actions ne sont pas toujours dispos,
+                # ex: Secret Env 2/3)
+                next_state = env.current_state()
+                available = env.available_actions()
+                action = int(max(available, key=lambda a: pi[next_state, a]))
             step_count += 1
 
         # Calcul des retours G et mise à jour first-visit (en partant de la fin)
