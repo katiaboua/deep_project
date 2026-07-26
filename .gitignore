@@ -1,7 +1,5 @@
-# .gitignore sans libs
-@"
+# Ouvre le .gitignore et ajoute ces lignes
 venv/
 __pycache__/
 *.pyc
 .env
-"@ | Out-File -FilePath .gitignore -Encoding utf8
