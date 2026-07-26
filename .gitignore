@@ -1,5 +1,21 @@
-# Ouvre le .gitignore et ajoute ces lignes
-venv/
+# Python
 __pycache__/
 *.pyc
-.env
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+
+# Modeles entraines (trop volumineux pour git — regenerables via les notebooks)
+# Env 2 : ~480 Mo (2M etats x table Q float64 x 10 fichiers)
+# Env 3 : ~15 Mo
+models/

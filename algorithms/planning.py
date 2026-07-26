@@ -10,9 +10,11 @@ def choose_action_epsilon_greedy(
     available_actions: List[int]
 ) -> int:
     if np.random.random() < epsilon:
-        return np.random.choice(available_actions)
-    # Prend le max uniquement parmi les actions disponibles
-    return max(available_actions, key=lambda a: Q[s, a])
+        return int(np.random.choice(available_actions))
+    # argmax restreint aux actions disponibles (necessaire pour les envs
+    # ou toutes les actions ne sont pas toujours dispos, ex: Secret Env 2/3)
+    return int(max(available_actions, key=lambda a: Q[s, a]))
+
 
 def dyna_q(
     env,
