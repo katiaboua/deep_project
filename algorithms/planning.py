@@ -9,15 +9,10 @@ def choose_action_epsilon_greedy(
     epsilon: float,
     available_actions: List[int]
 ) -> int:
-    """
-    Choisit une action avec la stratégie epsilon-greedy.
-    - avec probabilité epsilon → action aléatoire (exploration)
-    - sinon → meilleure action connue (exploitation)
-    """
     if np.random.random() < epsilon:
         return np.random.choice(available_actions)
-    return np.argmax(Q[s])
-
+    # Prend le max uniquement parmi les actions disponibles
+    return max(available_actions, key=lambda a: Q[s, a])
 
 def dyna_q(
     env,
