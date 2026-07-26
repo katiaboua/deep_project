@@ -245,6 +245,36 @@ class MontyHall1Env(ModelFreeEnv):
             self.pretty_print()
 
         print(f"\n  Score final : {self.score():+.1f}")
+        
+def _build_monty_hall_1_mdp():
+    """
+    Construit le MDP complet de Monty Hall niveau 1.
+
+    États : 0=départ, 1/2/3=porte A/B/C choisie (étape 2), 4=terminé
+    Actions : à l'état 0, choisir une porte (0,1,2) ; aux états 1,2,3, 0=garder / 1=changer
+    """
+    S = np.array([0, 1, 2, 3, 4])
+    A = np.array([0, 1, 2])   # max 3 actions (utilisées seulement à l'état 0)
+    R = np.array([0.0, 1.0])  # R[0]=perdu, R[1]=gagné
+    T = np.array([4])
+
+    p = np.zeros((len(S), len(A), len(S), len(R)))
+
+    # État 0 : choisir une porte -> état 1/2/3, reward 0 (rien décidé encore)
+    for a in range(3):
+        p[0, a, a + 1, 0] = 1.0
+
+    # États 1, 2, 3 : garder (action 0) ou changer (action 1)
+    for s in [1, 2, 3]:
+        p[s, 0, 4, 1] = 1 / 3   # garder -> gagne 1 fois sur 3
+        p[s, 0, 4, 0] = 2 / 3   # garder -> perd 2 fois sur 3
+        p[s, 1, 4, 1] = 2 / 3   # changer -> gagne 2 fois sur 3
+        p[s, 1, 4, 0] = 1 / 3   # changer -> perd 1 fois sur 3
+
+    return S, A, R, T, p
+
+
+MontyHall1Env.S, MontyHall1Env.A, MontyHall1Env.R, MontyHall1Env.T, MontyHall1Env.p = _build_monty_hall_1_mdp()
 
 
 # ----------------------------------------------------------------------
